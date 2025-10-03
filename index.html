@@ -1,11 +1,337 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>School Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .account-container {
+            position: fixed;
+            top: 1rem;
+            right: 2rem;
+            z-index: 1001;
+        }
+
+        .account-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .account-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-width: 250px;
+            padding: 1rem;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dropdown.show {
+            display: block;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .login-form input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .login-form button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .login-form button:hover {
+            background-color: #229954;
+        }
+
+        .login-form button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 0.5rem;
+        }
+
+        .success-message {
+            color: #27ae60;
+            font-size: 12px;
+            margin-top: 0.5rem;
+        }
+
+        .loading {
+            color: #3498db;
+            font-size: 12px;
+            margin-top: 0.5rem;
+        }
+
+        .create-account-link {
+            margin-top: 0.75rem;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 0.75rem;
+        }
+
+        .create-account-link a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .create-account-link a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+
+        .main-content {
+            padding: 2rem;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
-    
+    <div class="account-container">
+        <button class="account-btn" id="accountBtn">Account</button>
+        <div class="dropdown" id="dropdown">
+            <div id="loginSection">
+                <form class="login-form" id="loginForm">
+                    <input type="text" id="username" placeholder="GitHub gebruikersnaam" required>
+                    <button type="submit" id="loginBtn">Inloggen</button>
+                    <div id="message"></div>
+                </form>
+                <div class="create-account-link">
+                    <a href="create_account.html">Account aanmaken</a>
+                </div>
+            </div>
+            <div id="loggedInSection" style="display: none;">
+                <p>Ingelogd als: <strong id="currentUser"></strong></p>
+                <button class="logout-btn" id="logoutBtn">Uitloggen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AccountManager {
+            constructor() {
+                this.accountBtn = document.getElementById('accountBtn');
+                this.dropdown = document.getElementById('dropdown');
+                this.loginForm = document.getElementById('loginForm');
+                this.loginSection = document.getElementById('loginSection');
+                this.loggedInSection = document.getElementById('loggedInSection');
+                this.currentUser = document.getElementById('currentUser');
+                this.message = document.getElementById('message');
+                this.loginBtn = document.getElementById('loginBtn');
+                this.logoutBtn = document.getElementById('logoutBtn');
+                
+                this.init();
+            }
+
+            init() {
+                // Event listeners
+                this.accountBtn.addEventListener('click', () => this.toggleDropdown());
+                this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+                this.logoutBtn.addEventListener('click', () => this.handleLogout());
+                
+                // Sluit dropdown bij klikken buiten
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.account-container')) {
+                        this.dropdown.classList.remove('show');
+                    }
+                });
+
+                // Check of er al iemand ingelogd is
+                this.checkLoginStatus();
+            }
+
+            toggleDropdown() {
+                this.dropdown.classList.toggle('show');
+            }
+
+            checkLoginStatus() {
+                const cachedUser = localStorage.getItem('schoolWebsiteUser');
+                const loginTime = localStorage.getItem('schoolWebsiteLoginTime');
+                
+                if (cachedUser && loginTime) {
+                    // Check of login nog geldig is (24 uur)
+                    const now = new Date().getTime();
+                    const loginTimeStamp = parseInt(loginTime);
+                    const hoursSinceLogin = (now - loginTimeStamp) / (1000 * 60 * 60);
+                    
+                    if (hoursSinceLogin < 24) {
+                        this.setLoggedInState(cachedUser);
+                        return;
+                    } else {
+                        // Login verlopen, verwijder cache
+                        this.clearLoginCache();
+                    }
+                }
+                
+                this.setLoggedOutState();
+            }
+
+            async handleLogin(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                if (!username) {
+                    this.showMessage('Voer een gebruikersnaam in.', 'error');
+                    return;
+                }
+
+                this.setLoading(true);
+                this.showMessage('Bezig met inloggen...', 'loading');
+
+                try {
+                    const accountData = await this.fetchAccountData(username);
+                    
+                    if (accountData && accountData.account === true) {
+                        this.handleSuccessfulLogin(username);
+                        this.showMessage('Succesvol ingelogd!', 'success');
+                    } else {
+                        this.showMessage('Toegang geweigerd. Account niet geautoriseerd.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    this.showMessage('Fout bij inloggen. Controleer de gebruikersnaam.', 'error');
+                } finally {
+                    this.setLoading(false);
+                }
+            }
+
+            async fetchAccountData(username) {
+                const url = `https://raw.githubusercontent.com/${username}/school-klaasvm-com/main/account.json`;
+                
+                try {
+                    console.log('Proberen te laden:', url); // Debug log
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    console.log('Account data geladen:', data); // Debug log
+                    return data;
+                } catch (error) {
+                    console.error('Fetch error:', error); // Debug log
+                    throw new Error('Account data niet gevonden');
+                }
+            }
+
+            handleSuccessfulLogin(username) {
+                // Opslaan in cache
+                localStorage.setItem('schoolWebsiteUser', username);
+                localStorage.setItem('schoolWebsiteLoginTime', new Date().getTime().toString());
+                
+                this.setLoggedInState(username);
+                
+                // Dropdown sluiten na korte vertraging
+                setTimeout(() => {
+                    this.dropdown.classList.remove('show');
+                }, 1500);
+            }
+
+            handleLogout() {
+                this.clearLoginCache();
+                this.setLoggedOutState();
+                this.dropdown.classList.remove('show');
+            }
+
+            clearLoginCache() {
+                localStorage.removeItem('schoolWebsiteUser');
+                localStorage.removeItem('schoolWebsiteLoginTime');
+            }
+
+            setLoggedInState(username) {
+                this.loginSection.style.display = 'none';
+                this.loggedInSection.style.display = 'block';
+                this.currentUser.textContent = username;
+                this.accountBtn.textContent = username;
+            }
+
+            setLoggedOutState() {
+                this.loginSection.style.display = 'block';
+                this.loggedInSection.style.display = 'none';
+                this.accountBtn.textContent = 'Account';
+                this.message.textContent = '';
+                document.getElementById('username').value = '';
+            }
+
+            setLoading(isLoading) {
+                this.loginBtn.disabled = isLoading;
+                this.loginBtn.textContent = isLoading ? 'Bezig...' : 'Inloggen';
+            }
+
+            showMessage(text, type) {
+                this.message.textContent = text;
+                this.message.className = type === 'error' ? 'error-message' : 
+                                        type === 'success' ? 'success-message' : 
+                                        type === 'loading' ? 'loading' : '';
+            }
+        }
+
+        // Initialiseer het account systeem wanneer de pagina geladen is
+        document.addEventListener('DOMContentLoaded', () => {
+            new AccountManager();
+        });
+    </script>
 </body>
 </html>

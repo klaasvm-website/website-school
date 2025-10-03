@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dictionnaire Français - Le Robert</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .search-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #c82333;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .result-section {
+            margin-top: 30px;
+        }
+        
+        .definition-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .definition-box h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .word-info {
+            background-color: #fef3e2;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .word-info h2 {
+            margin: 0;
+            color: #d63384;
+        }
+        
+        .url-info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .pronunciation {
+            background-color: #e8f4fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇫🇷 Dictionnaire Français - Le Robert</h1>
+        
+        <div class="search-section">
+            <div class="input-group">
+                <input type="text" id="searchWord" placeholder="Entrez un mot français..." />
+                <button onclick="searchWord()">Rechercher</button>
+            </div>
+            <div id="status"></div>
+        </div>
+        
+        <div id="results" class="result-section" style="display: none;">
+            <div id="wordInfo" class="word-info"></div>
+            
+            <div id="definition" class="definition-box"></div>
+            
+
+        </div>
+    </div>
+
+    <script>
+        let currentWord = '';
+
+        // Event listener pour la touche Entrée
+        document.getElementById('searchWord').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchWord();
+            }
+        });
+
+        async function searchWord() {
+            const word = document.getElementById('searchWord').value.trim();
+            
+            if (!word) {
+                showStatus('Veuillez d\'abord entrer un mot !', 'error');
+                return;
+            }
+            
+            currentWord = word;
+            const button = document.querySelector('button');
+            const originalText = button.textContent;
+            
+            // Mises à jour de l'interface pour l'état de chargement
+            button.disabled = true;
+            button.textContent = 'Recherche...';
+            showStatus('Recherche du mot en cours...', 'loading');
+            document.getElementById('results').style.display = 'none';
+            
+            try {
+                // Utilise Le Robert pour l'extraction de définitions
+                const url = `https://dictionnaire.lerobert.com/definition/${encodeURIComponent(word.toLowerCase())}`;
+                
+                // Essaye différents services proxy CORS avec plus d'options
+                const proxyServices = [
+                    {
+                        url: `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                        name: 'allorigins'
+                    },
+                    {
+                        url: `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                        name: 'corsproxy'
+                    },
+                    {
+                        url: `https://cors-anywhere.herokuapp.com/${url}`,
+                        name: 'cors-anywhere'
+                    },
+                    {
+                        url: `https://thingproxy.freeboard.io/fetch/${url}`,
+                        name: 'thingproxy'
+                    }
+                ];
+                
+                let response = null;
+                let lastError = null;
+                
+                for (const proxy of proxyServices) {
+                    try {
+                        console.log(`Tentative avec le proxy: ${proxy.name}`);
+                        response = await fetch(proxy.url);
+                        if (response.ok) {
+                            console.log(`Succès avec le proxy: ${proxy.name}`);
+                            break;
+                        }
+                    } catch (error) {
+                        lastError = error;
+                        console.warn(`Le proxy ${proxy.name} a échoué:`, error);
+                    }
+                }
+                
+                if (!response || !response.ok) {
+                    throw lastError || new Error('Tous les services proxy sont indisponibles');
+                }
+                
+                let htmlContent = '';
+                
+                // Différents services proxy ont différents formats de réponse
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    // Format allorigins.win
+                    htmlContent = data.contents || data.data || '';
+                } else {
+                    // Réponse HTML directe (ex. corsproxy.io)
+                    htmlContent = await response.text();
+                }
+                
+                if (!htmlContent) {
+                    throw new Error('Aucun contenu reçu du serveur');
+                }
+                
+                // Parse le HTML pour la définition
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                
+                displayResults(word, url, doc, htmlContent);
+                showStatus(`Mot "${word}" trouvé avec succès !`, 'success');
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                
+                let errorMessage = 'Erreur inconnue';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Impossible de se connecter au dictionnaire Le Robert. Essayez les liens directs ci-dessous.';
+                } else if (error.message.includes('proxy')) {
+                    errorMessage = 'Les services proxy sont temporairement indisponibles. Utilisez les liens directs ci-dessous.';
+                } else {
+                    errorMessage = error.message;
+                }
+                
+                showStatus(`Erreur lors de la recherche de "${word}": ${errorMessage}`, 'error');
+                
+                // Fallback: affiche les options de recherche alternatives
+                showAlternativeSearch(word);
+                
+            } finally {
+                // Réinitialise le bouton
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        function displayResults(word, url, doc, rawHtml) {
+            // Vérifie que les éléments DOM existent
+            const wordInfoElement = document.getElementById('wordInfo');
+            const definitionElement = document.getElementById('definition');
+            
+            if (!wordInfoElement || !definitionElement) {
+                console.error('Éléments DOM requis non trouvés');
+                showStatus('Une erreur est survenue lors de l\'affichage des résultats', 'error');
+                return;
+            }
+            
+            // Affiche les infos du mot
+            wordInfoElement.innerHTML = `
+                <h2>📚 ${word}</h2>
+                <div class="url-info">
+                    <strong>Source:</strong> <a href="${url}" target="_blank">Le Robert - ${word}</a>
+                </div>
+            `;
+            
+            // Essaye d'extraire la définition
+            const definition = extractDefinition(doc, word);
+            definitionElement.innerHTML = definition;
+            
+            // Affiche les résultats
+            document.getElementById('results').style.display = 'block';
+            
+            // Fait défiler vers les résultats
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function extractDefinition(doc, word) {
+            let definitionHtml = '<h3>📖 Définition de "' + word + '":</h3>';
+            
+            // Recherche spécifique pour Le Robert
+            // Essaye de trouver les définitions dans différentes structures possibles
+            
+            // 1. Recherche dans les éléments avec class contenant "definition"
+            const definitionElements = doc.querySelectorAll('[class*="definition"], [class*="sens"], .d_dfntn');
+            
+            if (definitionElements.length > 0) {
+                for (const element of definitionElements) {
+                    const text = element.textContent.trim();
+                    if (text.length > 10 && !text.includes('javascript') && !text.includes('window')) {
+                        definitionHtml += `
+                            <div style="margin: 20px 0; padding: 25px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                                <div style="font-size: 18px; line-height: 1.6; color: #856404;">
+                                    ${text}
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Recherche aussi la prononciation
+                        const pronunciation = extractPronunciation(doc);
+                        if (pronunciation) {
+                            definitionHtml = '<h3>📖 Définition de "' + word + '":</h3>' + pronunciation + definitionHtml.slice(definitionHtml.indexOf('<div style="margin: 20px 0;'));
+                        }
+                        
+                        return definitionHtml;
+                    }
+                }
+            }
+            
+            // 2. Recherche dans les paragraphes et divs génériques
+            const paragraphs = doc.querySelectorAll('p, div');
+            for (const para of paragraphs) {
+                const text = para.textContent.trim();
+                
+                // Filtre pour des définitions potentielles
+                if (text.length > 20 && 
+                    text.length < 500 &&
+                    !text.includes('javascript') &&
+                    !text.includes('window') &&
+                    !text.includes('cookie') &&
+                    !text.includes('navigation') &&
+                    !text.includes('menu') &&
+                    (text.includes('nom') || text.includes('verbe') || text.includes('adjectif') || 
+                     text.toLowerCase().includes(word.toLowerCase()) ||
+                     /^[A-Z]/.test(text))) {
+                    
+                    definitionHtml += `
+                        <div style="margin: 20px 0; padding: 25px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                            <div style="font-size: 18px; line-height: 1.6; color: #856404;">
+                                ${text}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Recherche la prononciation
+                    const pronunciation = extractPronunciation(doc);
+                    if (pronunciation) {
+                        definitionHtml = '<h3>📖 Définition de "' + word + '":</h3>' + pronunciation + definitionHtml.slice(definitionHtml.indexOf('<div style="margin: 20px 0;'));
+                    }
+                    
+                    return definitionHtml;
+                }
+            }
+            
+            // Aucune définition trouvée
+            definitionHtml += `
+                <div style="margin: 15px 0; padding: 15px; background: #f8d7da; border-left: 4px solid #dc3545;">
+                    <strong>⚠️ Aucune définition trouvée</strong><br>
+                    Le mot "${word}" n'a pas été trouvé dans Le Robert ou la définition n'est pas dans un format reconnu.
+                    Vérifiez l'orthographe ou essayez un autre mot.
+                </div>
+            `;
+            
+            return definitionHtml;
+        }
+        
+        function extractPronunciation(doc) {
+            // Recherche la prononciation phonétique
+            const phoneticElements = doc.querySelectorAll('[class*="phon"], [class*="pronunciation"], .d_pronunciation');
+            
+            for (const element of phoneticElements) {
+                const text = element.textContent.trim();
+                if (text.includes('[') && text.includes(']') || text.includes('/') || text.includes('\\')) {
+                    return `
+                        <div class="pronunciation">
+                            <strong>🔊 Prononciation:</strong> ${text}
+                        </div>
+                    `;
+                }
+            }
+            
+            return '';
+        }
+
+        function showAlternativeSearch(word) {
+            const alternativeHtml = `
+                <div style="margin: 20px 0; padding: 20px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: #856404;">⚠️ Recherche du mot "${word}"</h3>
+                    <p style="color: #856404; margin-bottom: 0;">
+                        Impossible d'accéder automatiquement aux définitions. Utilisez les liens ci-dessous pour rechercher "${word}" dans les dictionnaires français de référence.
+                    </p>
+                </div>
+                <div style="margin: 20px 0; padding: 20px; background: #e3f2fd; border-radius: 5px;">
+                    <h3>🔗 Options de recherche alternatives pour "${word}":</h3>
+                    <p style="margin-bottom: 15px;">Cliquez sur les liens ci-dessous pour rechercher "${word}" dans différents dictionnaires :</p>
+                    <ul style="margin: 15px 0; line-height: 2;">
+                        <li><a href="https://dictionnaire.lerobert.com/definition/${encodeURIComponent(word.toLowerCase())}" target="_blank" style="color: #dc3545; font-weight: bold;">📚 Le Robert - ${word}</a></li>
+                        <li><a href="https://www.larousse.fr/dictionnaires/francais/${encodeURIComponent(word.toLowerCase())}" target="_blank" style="color: #007bff;">📖 Larousse - ${word}</a></li>
+                        <li><a href="https://fr.wiktionary.org/wiki/${encodeURIComponent(word)}" target="_blank" style="color: #28a745;">🌐 Wiktionnaire - ${word}</a></li>
+                        <li><a href="https://www.cnrtl.fr/definition/${encodeURIComponent(word.toLowerCase())}" target="_blank" style="color: #6f42c1;">🏛️ CNRTL - ${word}</a></li>
+                        <li><a href="https://www.linguee.fr/francais-anglais/search?source=francais&query=${encodeURIComponent(word)}" target="_blank" style="color: #fd7e14;">🔄 Linguee - ${word}</a></li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = alternativeHtml;
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function getBasicFrenchDefinition(word) {
+            // Aucune définition locale - redirige uniquement vers les dictionnaires en ligne
+            return `
+                <div style="margin: 20px 0; padding: 20px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: #856404;">⚠️ Recherche du mot "${word}"</h3>
+                    <p style="color: #856404; margin-bottom: 0;">
+                        Impossible d'accéder automatiquement aux définitions. Utilisez les liens ci-dessous pour rechercher "${word}" dans les dictionnaires français de référence.
+                    </p>
+                </div>
+            `;
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = type;
+            statusDiv.textContent = message;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                    statusDiv.className = '';
+                }, 3000);
+            }
+        }
+
+        // Focus sur le champ de saisie au chargement
+        window.addEventListener('load', function() {
+            document.getElementById('searchWord').focus();
+        });
+    </script>
+</body>
+</html>

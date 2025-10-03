@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Talenquiz</title>
+	<style>
+		body { 
+			font-family: Arial, sans-serif; 
+			background: #f7f7f7; 
+			padding: 1em; 
+			margin: 0; 
+		}
+		.container { 
+			background: #fff; 
+			padding: 2em; 
+			border-radius: 8px; 
+			max-width: 600px; 
+			margin: auto; 
+			box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+		}
+		.language-selection { 
+			display: grid; 
+			grid-template-columns: 1fr auto 1fr; 
+			gap: 1em; 
+			align-items: center; 
+			margin-bottom: 2em; 
+			padding: 1.5em; 
+			background: #f9f9f9; 
+			border-radius: 8px; 
+		}
+		.language-box { 
+			text-align: center; 
+		}
+		.language-box label {
+			display: block;
+			margin-bottom: 0.5em;
+			font-weight: bold;
+			color: #333;
+		}
+		.language-box select { 
+			padding: 0.5em; 
+			font-size: 1em; 
+			width: 100%; 
+			border: 2px solid #ddd; 
+			border-radius: 4px; 
+		}
+		.arrow { 
+			font-size: 2em; 
+			color: #666; 
+			font-weight: bold;
+		}
+		.word-input { 
+			display: grid; 
+			grid-template-columns: 1fr 1fr auto; 
+			gap: 0.5em; 
+			margin-bottom: 1em; 
+		}
+		.word-input input { 
+			padding: 0.5em; 
+			border: 1px solid #ddd; 
+			border-radius: 4px; 
+		}
+		button { 
+			padding: 0.5em 1em; 
+			font-size: 1em; 
+			background: #007acc; 
+			color: white; 
+			border: none; 
+			border-radius: 4px; 
+			cursor: pointer; 
+		}
+		button:hover { 
+			background: #005a9e; 
+		}
+		button:disabled { 
+			background: #ccc; 
+			cursor: not-allowed; 
+		}
+		.import-section { 
+			margin: 1em 0; 
+			padding: 1em;
+			background: #f8f8f8;
+			border-radius: 4px;
+		}
+		.import-section h4 {
+			margin-top: 0;
+			color: #333;
+		}
+		.import-section textarea { 
+			width: 100%; 
+			padding: 0.5em; 
+			border: 1px solid #ddd; 
+			border-radius: 4px; 
+			font-family: monospace; 
+			resize: vertical;
+		}
+		table { 
+			width: 100%; 
+			border-collapse: collapse; 
+			margin-bottom: 1em; 
+		}
+		th, td { 
+			padding: 0.5em; 
+			text-align: left; 
+			border-bottom: 1px solid #ddd; 
+		}
+		th { 
+			background: #f5f5f5; 
+			font-weight: bold; 
+		}
+		#quiz-container { 
+			display: none; 
+			text-align: center; 
+		}
+		#question { 
+			font-size: 1.2em; 
+			margin-bottom: 1em; 
+			padding: 1em;
+			background: #e7f3ff;
+			border-radius: 4px;
+		}
+		#answer { 
+			width: 100%; 
+			max-width: 300px;
+			padding: 0.5em; 
+			font-size: 1em; 
+			margin-bottom: 1em; 
+			border: 1px solid #ddd; 
+			border-radius: 4px; 
+		}
+		#feedback { 
+			margin-top: 1em; 
+			font-weight: bold; 
+			padding: 0.5em;
+			border-radius: 4px;
+		}
+		.correct { color: green; background: #e8f5e8; }
+		.incorrect { color: red; background: #ffeaea; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>🌍 Talenquiz</h1>
+		
+		<div class="language-selection">
+			<div class="language-box">
+				<label for="source-language">Van taal:</label>
+				<select id="source-language" onchange="updateLanguages()">
+					<option value="nl">Nederlands</option>
+					<option value="fr">Frans</option>
+					<option value="en">Engels</option>
+				</select>
+			</div>
+			<div class="arrow">→</div>
+			<div class="language-box">
+				<label for="target-language">Naar taal:</label>
+				<select id="target-language" onchange="updateLanguages()">
+					<option value="fr">Frans</option>
+					<option value="nl">Nederlands</option>
+					<option value="en">Engels</option>
+				</select>
+			</div>
+		</div>
+		
+		<div id="input-container">
+			<h3>📝 Voeg woordparen toe:</h3>
+			<form id="word-form" onsubmit="addWord(event)">
+				<div class="word-input">
+					<input type="text" id="source-word" placeholder="Nederlands woord" required>
+					<input type="text" id="target-word" placeholder="Frans woord" required>
+					<button type="submit">Toevoegen</button>
+				</div>
+			</form>
+			
+			<div class="import-section">
+				<h4>📥 Bulk importeren:</h4>
+				<textarea id="import-area" rows="4" placeholder="doeltaal woord = brontaal woord&#10;doeltaal woord = brontaal woord"></textarea>
+				<button type="button" onclick="importWords()">Importeren</button>
+			</div>
+			
+			<table id="word-table">
+				<thead>
+					<tr>
+						<th id="source-header">Nederlands</th>
+						<th id="target-header">Frans</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			
+			<button id="start-btn" onclick="startQuiz()" disabled>🎯 Start Quiz</button>
+		</div>
+		
+		<div id="quiz-container">
+			<div id="question"></div>
+			<input type="text" id="answer" placeholder="Vul het woord in...">
+			<button onclick="checkAnswer()">✓ Controleer</button>
+			<div id="feedback"></div>
+			<button id="back-btn" type="button" onclick="backToInput()" style="margin-top:1em;">← Terug</button>
+		</div>
+	</div>
+
+	<script>
+		let quizData = [];
+		let current = null;
+		let previous = null;
+
+		const languageNames = {
+			'nl': 'Nederlands',
+			'fr': 'Frans', 
+			'en': 'Engels'
+		};
+
+		function updateLanguages() {
+			const sourceLang = document.getElementById('source-language').value;
+			const targetLang = document.getElementById('target-language').value;
+			
+			// Prevent same language selection
+			if (sourceLang === targetLang) {
+				// Auto-select different target language
+				const options = ['nl', 'fr', 'en'].filter(lang => lang !== sourceLang);
+				document.getElementById('target-language').value = options[0];
+			}
+			
+			updateUI();
+			
+			// Clear current data when changing language
+			quizData = [];
+			updateTable();
+			document.getElementById('start-btn').disabled = true;
+		}
+
+		function updateUI() {
+			const sourceLang = document.getElementById('source-language').value;
+			const targetLang = document.getElementById('target-language').value;
+			const sourceName = languageNames[sourceLang];
+			const targetName = languageNames[targetLang];
+			
+			// Update placeholders and labels
+			document.getElementById('source-word').placeholder = `${sourceName} woord`;
+			document.getElementById('target-word').placeholder = `${targetName} woord`;
+			document.getElementById('source-header').textContent = sourceName;
+			document.getElementById('target-header').textContent = targetName;
+			document.getElementById('answer').placeholder = `Vul het ${targetName.toLowerCase()}e woord in...`;
+			document.getElementById('import-area').placeholder = `${targetName.toLowerCase()} woord = ${sourceName.toLowerCase()} woord\n${targetName.toLowerCase()} woord = ${sourceName.toLowerCase()} woord`;
+		}
+
+		function addWord(e) {
+			e.preventDefault();
+			const source = document.getElementById('source-word').value.trim();
+			const target = document.getElementById('target-word').value.trim();
+			if (source && target) {
+				quizData.push({ source, target, score: 0 });
+				updateTable();
+				document.getElementById('source-word').value = '';
+				document.getElementById('target-word').value = '';
+				document.getElementById('start-btn').disabled = quizData.length === 0;
+			}
+		}
+
+		function importWords() {
+			const text = document.getElementById('import-area').value;
+			const lines = text.split(/\r?\n/);
+			let added = 0;
+			const sourceName = languageNames[document.getElementById('source-language').value];
+			const targetName = languageNames[document.getElementById('target-language').value];
+			
+			lines.forEach(line => {
+				const parts = line.split('=');
+				if (parts.length === 2) {
+					const target = parts[0].trim();
+					const source = parts[1].trim();
+					if (target && source) {
+						quizData.push({ source, target, score: 0 });
+						added++;
+					}
+				}
+			});
+			updateTable();
+			document.getElementById('import-area').value = '';
+			document.getElementById('start-btn').disabled = quizData.length === 0;
+			if (added === 0) {
+				alert(`Geen geldige woordparen gevonden. Gebruik het formaat: ${targetName.toLowerCase()} woord = ${sourceName.toLowerCase()} woord`);
+			} else {
+				alert(`${added} woordpaar(en) toegevoegd!`);
+			}
+		}
+
+		function updateTable() {
+			const tbody = document.querySelector('#word-table tbody');
+			tbody.innerHTML = '';
+			quizData.forEach(pair => {
+				const tr = document.createElement('tr');
+				tr.innerHTML = `<td>${pair.source}</td><td>${pair.target}</td>`;
+				tbody.appendChild(tr);
+			});
+		}
+
+		function startQuiz() {
+			if (quizData.length === 0) return;
+			// Reset alle scores naar 0 als je opnieuw start
+			quizData.forEach(pair => { pair.score = 0; });
+			updateTable();
+			document.getElementById('input-container').style.display = 'none';
+			document.getElementById('quiz-container').style.display = 'block';
+			showQuestion();
+		}
+
+		function showQuestion() {
+			document.getElementById('answer').value = '';
+			document.getElementById('feedback').textContent = '';
+			document.getElementById('feedback').className = '';
+			
+			// Filter woorden met score < 2
+			const openWords = quizData.filter(pair => pair.score < 2);
+			if (openWords.length > 0) {
+				let idx;
+				let tries = 0;
+				do {
+					idx = Math.floor(Math.random() * openWords.length);
+					// Zoek de echte index in quizData
+					current = quizData.indexOf(openWords[idx]);
+					tries++;
+				} while (openWords.length > 1 && current === previous && tries < 10);
+				
+				previous = current;
+				const sourceName = languageNames[document.getElementById('source-language').value];
+				document.getElementById('question').textContent = `${sourceName}: ${quizData[current].source}`;
+				document.getElementById('answer').style.display = '';
+				document.querySelector('#quiz-container button').style.display = '';
+				document.getElementById('answer').focus();
+			} else {
+				document.getElementById('question').textContent = '🎉 Gefeliciteerd! Je hebt alle woorden geleerd!';
+				document.getElementById('answer').style.display = 'none';
+				document.querySelector('#quiz-container button').style.display = 'none';
+			}
+		}
+
+		function checkAnswer() {
+			const userAnswer = document.getElementById('answer').value.trim().toLowerCase();
+			const correctAnswer = quizData[current].target.toLowerCase();
+			const feedbackEl = document.getElementById('feedback');
+			
+			if (userAnswer === correctAnswer) {
+				feedbackEl.textContent = '✅ Goed gedaan!';
+				feedbackEl.className = 'correct';
+				quizData[current].score = Math.min(2, (quizData[current].score ?? 0) + 1);
+				updateTable();
+				setTimeout(showQuestion, 1000);
+			} else {
+				feedbackEl.textContent = `❌ Fout! Het juiste antwoord is: ${quizData[current].target}`;
+				feedbackEl.className = 'incorrect';
+				quizData[current].score = Math.max(0, (quizData[current].score ?? 0) - 1);
+				updateTable();
+				setTimeout(showQuestion, 2500);
+			}
+		}
+
+		function backToInput() {
+			document.getElementById('quiz-container').style.display = 'none';
+			document.getElementById('input-container').style.display = 'block';
+		}
+
+		// Initialize the interface when page loads
+		window.onload = function() {
+			updateUI(); // Set up the default language
+		};
+
+		// Allow Enter key in answer field
+		document.addEventListener('DOMContentLoaded', function() {
+			document.getElementById('answer').addEventListener('keypress', function(e) {
+				if (e.key === 'Enter') {
+					checkAnswer();
+				}
+			});
+		});
+	</script>
+</body>
+</html>

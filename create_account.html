@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Account Aanmaken - School.klaasvm.com</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #24292e 0%, #0366d6 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #0366d6;
+            position: relative;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #0366d6;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .step h3 {
+            font-size: 1.5rem;
+            color: #24292e;
+            margin-bottom: 15px;
+            margin-top: 10px;
+        }
+
+        .step p {
+            font-size: 1.1rem;
+            color: #586069;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .github-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: #24292e;
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .github-button:hover {
+            background: #0366d6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(3, 102, 214, 0.3);
+        }
+
+        .github-logo {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .big-button {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 20px 30px;
+            font-size: 1.3rem;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-box h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #424242;
+            font-size: 0.95rem;
+        }
+
+        .back-button {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
+        }
+
+        /* Nieuwe stijlen voor username input */
+        .username-input-section {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #24292e;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .github-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #d1d5da;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-family: 'Segoe UI', monospace;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .github-input:focus {
+            outline: none;
+            border-color: #0366d6;
+            box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+        }
+
+        .input-help {
+            display: block;
+            color: #6a737d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .workflow-btn:disabled {
+            background: #d1d5da !important;
+            color: #6a737d !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .workflow-btn:disabled:hover {
+            background: #d1d5da !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin-bottom: 8px;
+            color: #424242;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GitHub Account Setup</h1>
+            <p>Stap voor stap uitleg voor het opzetten van jouw GitHub account</p>
+        </div>
+        
+        <div class="content">
+            <a href="index.html" class="back-button">← Terug naar hoofdpagina</a>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Maak een GitHub account aan</h3>
+                <p>
+                    Ga naar GitHub en maak een gratis account aan. Dit is nodig om je schoolgegevens veilig op te slaan in de cloud.
+                </p>
+                
+                <a href="https://github.com/signup" target="_blank" class="github-button">
+                    <svg class="github-logo" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    Maak GitHub Account Aan
+                </a>
+                
+                <div class="info-box">
+                    <h4>💡 Tip:</h4>
+                    <p>Kies een gebruikersnaam die je kunt onthouden en gebruik een geldig e-mailadres dat je regelmatig controleert.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Maak een GitHub repository aan</h3>
+                <p>
+                    Na het aanmaken van je GitHub account, maak je een speciale repository aan waar al je schoolgegevens worden opgeslagen. Deze repository is speciaal geconfigureerd voor school.klaasvm.com.
+                </p>
+                
+                <a href="https://github.com/new?name=school-klaasvm-com&description=This%20repository%20is%20for%20storaging%20your%20school%20data%20on%20the%20website%20school.klaasvm.com&private=false" target="_blank" class="github-button big-button">
+                    <svg class="github-logo" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    Maak School Repository Aan
+                </a>
+                
+                <div class="info-box">
+                    <h4>🔒 Belangrijk:</h4>
+                    <p>Deze repository wordt automatisch aangemaakt met de juiste naam en beschrijving. Klik gewoon op "Create repository" wanneer je op GitHub bent!</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Installeer automatische workflow</h3>
+                <p>
+                    Deze workflow zorgt ervoor dat je account automatisch wordt geconfigureerd. Voer hieronder je GitHub username in om de workflow te installeren.
+                </p>
+                
+                <div class="username-input-section">
+                    <div class="input-group">
+                        <label for="githubUsername">Jouw GitHub Username:</label>
+                        <input type="text" id="githubUsername" placeholder="bijv: klaasvm-website" class="github-input">
+                        <small class="input-help">Dit is de gebruikersnaam die je net hebt aangemaakt bij stap 1</small>
+                    </div>
+                    
+                    <button id="installWorkflowBtn" class="github-button big-button workflow-btn" disabled>
+                        <svg class="github-logo" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        🤖 Installeer Automatische Workflow
+                    </button>
+                </div>
+                
+                <div class="info-box">
+                    <h4>🚀 Wat doet deze workflow?</h4>
+                    <ul>
+                        <li>✅ Maakt automatisch een account.json bestand aan</li>
+                        <li>✅ Configureerd je account met de juiste gegevens</li>
+                        <li>✅ Zorgt ervoor dat school.klaasvm.com je herkent</li>
+                        <li>✅ Werkt volledig automatisch na installatie</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <h4>✅ Wat gebeurt er hierna?</h4>
+                <p>Na het voltooien van deze stappen kun je terugkeren naar de hoofdpagina en beginnen met het gebruik van de school tools. Je gegevens worden automatisch opgeslagen in je GitHub repository.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elementen ophalen
+        const usernameInput = document.getElementById('githubUsername');
+        const installBtn = document.getElementById('installWorkflowBtn');
+        
+        // URL-encoded workflow code (jouw lange URL value parameter)
+        const workflowCode = "name%3A%20Create%20Account%20JSON%0A%0Aon%3A%0A%20%20push%3A%0A%20%20%20%20branches%3A%20%5Bmain%5D%0A%20%20pull_request%3A%0A%20%20%20%20branches%3A%20%5Bmain%5D%0A%20%20workflow_dispatch%3A%0A%0Ajobs%3A%0A%20%20create-account%3A%0A%20%20%20%20runs-on%3A%20ubuntu-latest%0A%20%20%20%20permissions%3A%0A%20%20%20%20%20%20contents%3A%20write%0A%20%20%20%20%20%20actions%3A%20write%0A%20%20%20%20%20%20pull-requests%3A%20write%0A%0A%20%20%20%20steps%3A%0A%20%20%20%20%20%20-%20uses%3A%20actions%2Fcheckout%40v4%0A%20%20%20%20%20%20%20%20with%3A%0A%20%20%20%20%20%20%20%20%20%20token%3A%20%24%7B%7B%20secrets.GITHUB_TOKEN%20%7D%7D%0A%20%20%20%20%20%20%20%20%20%20persist-credentials%3A%20true%0A%0A%20%20%20%20%20%20-%20name%3A%20Check%20if%20account.json%20exists%0A%20%20%20%20%20%20%20%20id%3A%20check-file%0A%20%20%20%20%20%20%20%20run%3A%20%7C%0A%20%20%20%20%20%20%20%20%20%20if%20%5B%20-f%20%22account.json%22%20%5D%3B%20then%0A%20%20%20%20%20%20%20%20%20%20%20%20echo%20%22exists%3Dtrue%22%20%3E%3E%20%24GITHUB_OUTPUT%0A%20%20%20%20%20%20%20%20%20%20else%0A%20%20%20%20%20%20%20%20%20%20%20%20echo%20%22exists%3Dfalse%22%20%3E%3E%20%24GITHUB_OUTPUT%0A%20%20%20%20%20%20%20%20%20%20fi%0A%0A%20%20%20%20%20%20-%20name%3A%20Create%20account.json%0A%20%20%20%20%20%20%20%20if%3A%20steps.check-file.outputs.exists%20%3D%3D%20'false'%0A%20%20%20%20%20%20%20%20run%3A%20%7C%0A%20%20%20%20%20%20%20%20%20%20USERNAME%3D%22%24%7B%7B%20github.repository_owner%20%7D%7D%22%0A%20%20%20%20%20%20%20%20%20%20cat%20%3E%20account.json%20%3C%3C%20'EOF'%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22account%22%3A%20true%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%22name%22%3A%20%22%24%7B%7B%20github.repository_owner%20%7D%7D%22%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20EOF%0A%20%20%20%20%20%20%20%20%20%20echo%20%22Created%20account.json%20with%20username%3A%20%24USERNAME%22%0A%0A%20%20%20%20%20%20-%20name%3A%20Commit%20changes%0A%20%20%20%20%20%20%20%20if%3A%20steps.check-file.outputs.exists%20%3D%3D%20'false'%0A%20%20%20%20%20%20%20%20run%3A%20%7C%0A%20%20%20%20%20%20%20%20%20%20git%20config%20--global%20user.email%20%22action%40github.com%22%0A%20%20%20%20%20%20%20%20%20%20git%20config%20--global%20user.name%20%22GitHub%20Action%22%0A%20%20%20%20%20%20%20%20%20%20git%20add%20account.json%0A%20%20%20%20%20%20%20%20%20%20if%20git%20diff%20--staged%20--quiet%3B%20then%0A%20%20%20%20%20%20%20%20%20%20%20%20echo%20%22No%20changes%20to%20commit%22%0A%20%20%20%20%20%20%20%20%20%20else%0A%20%20%20%20%20%20%20%20%20%20%20%20git%20commit%20-m%20%22%F0%9F%A4%96%20Auto-create%20account.json%20for%20%24%7B%7B%20github.repository_owner%20%7D%7D%22%0A%20%20%20%20%20%20%20%20%20%20%20%20git%20push%20origin%20%24%7B%7B%20github.ref_name%20%7D%7D%0A%20%20%20%20%20%20%20%20%20%20fi";
+        
+        // Event listener voor input veranderingen
+        usernameInput.addEventListener('input', function() {
+            const username = this.value.trim();
+            
+            // Enable/disable knop gebaseerd op input
+            if (username.length > 0) {
+                installBtn.disabled = false;
+                installBtn.innerHTML = `
+                    <svg class="github-logo" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    🚀 Installeer Workflow voor ${username}
+                `;
+            } else {
+                installBtn.disabled = true;
+                installBtn.innerHTML = `
+                    <svg class="github-logo" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.30 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    🤖 Installeer Automatische Workflow
+                `;
+            }
+        });
+        
+        // Event listener voor knop klik
+        installBtn.addEventListener('click', function() {
+            const username = usernameInput.value.trim();
+            
+            if (username) {
+                // Bouw de GitHub URL
+                const githubUrl = `https://github.com/${username}/school-klaasvm-com/new/main?filename=.github/workflows/school.yml&value=${workflowCode}`;
+                
+                // Open in nieuwe tab
+                window.open(githubUrl, '_blank');
+                
+                // Optioneel: toon success message
+                installBtn.innerHTML = `
+                    <svg class="github-logo" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    ✅ Geöpend op GitHub! Klik "Commit new file"
+                `;
+                
+                // Reset na 3 seconden
+                setTimeout(() => {
+                    installBtn.innerHTML = `
+                        <svg class="github-logo" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.30.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        🚀 Installeer Workflow voor ${username}
+                    `;
+                }, 3000);
+            }
+        });
+        
+        // Enter key support
+        usernameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !installBtn.disabled) {
+                installBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

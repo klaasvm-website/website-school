@@ -12,9 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
+      pull-requests: write
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
       
       - name: Check if account.json exists
         id: check-file
@@ -40,8 +45,12 @@ jobs:
       - name: Commit changes
         if: steps.check-file.outputs.exists == 'false'
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
           git add account.json
-          git commit -m "Auto-create account.json for ${{ github.repository_owner }}"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🤖 Auto-create account.json for ${{ github.repository_owner }}"
+            git push origin ${{ github.ref_name }}
+          fi

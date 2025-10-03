@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Dictionary Searcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .search-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .result-section {
+            margin-top: 30px;
+        }
+        
+        .definition-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .definition-box h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .word-info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .word-info h2 {
+            margin: 0;
+            color: #1976d2;
+        }
+        
+        .url-info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 English Dictionary Searcher</h1>
+        
+        <div class="search-section">
+            <div class="input-group">
+                <input type="text" id="searchWord" placeholder="Enter an English word..." />
+                <button onclick="searchWord()">Search</button>
+            </div>
+            <div id="status"></div>
+        </div>
+        
+        <div id="results" class="result-section" style="display: none;">
+            <div id="wordInfo" class="word-info"></div>
+            
+            <div id="definition" class="definition-box"></div>
+            
+        </div>
+    </div>
+
+    <script>
+        let currentWord = '';
+
+        // Event listener for Enter key
+        document.getElementById('searchWord').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchWord();
+            }
+        });
+
+        async function searchWord() {
+            const word = document.getElementById('searchWord').value.trim();
+            
+            if (!word) {
+                showStatus('Please enter a word first!', 'error');
+                return;
+            }
+            
+            currentWord = word;
+            const button = document.querySelector('button');
+            const originalText = button.textContent;
+            
+            // UI updates for loading state
+            button.disabled = true;
+            button.textContent = 'Searching...';
+            showStatus('Looking up word...', 'loading');
+            document.getElementById('results').style.display = 'none';
+            
+            try {
+                // Use Cambridge Dictionary for definition extraction
+                const url = `https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(word)}`;
+                
+                // Try different CORS proxy services
+                const proxyServices = [
+                    {
+                        url: `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                        name: 'allorigins'
+                    },
+                    {
+                        url: `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                        name: 'corsproxy'
+                    }
+                ];
+                
+                let response = null;
+                let lastError = null;
+                
+                for (const proxy of proxyServices) {
+                    try {
+                        console.log(`Trying proxy: ${proxy.name}`);
+                        response = await fetch(proxy.url);
+                        if (response.ok) {
+                            console.log(`Success with proxy: ${proxy.name}`);
+                            break;
+                        }
+                    } catch (error) {
+                        lastError = error;
+                        console.warn(`Proxy ${proxy.name} failed:`, error);
+                    }
+                }
+                
+                if (!response || !response.ok) {
+                    throw lastError || new Error('All proxy services are unavailable');
+                }
+                
+                let htmlContent = '';
+                
+                // Different proxy services have different response formats
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    // allorigins.win format
+                    htmlContent = data.contents || data.data || '';
+                } else {
+                    // Direct HTML response (e.g. corsproxy.io)
+                    htmlContent = await response.text();
+                }
+                
+                if (!htmlContent) {
+                    throw new Error('No content received from server');
+                }
+                
+                // Parse HTML for definition
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                
+                displayResults(word, url, doc, htmlContent);
+                showStatus(`Word "${word}" found successfully!`, 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                
+                let errorMessage = 'Unknown error';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Cannot connect to Cambridge Dictionary. Try the direct links below.';
+                } else if (error.message.includes('proxy')) {
+                    errorMessage = 'Proxy services are temporarily unavailable. Use the direct links below.';
+                } else {
+                    errorMessage = error.message;
+                }
+                
+                showStatus(`Error searching for "${word}": ${errorMessage}`, 'error');
+                
+                // Fallback: show alternative search options
+                showAlternativeSearch(word);
+                
+            } finally {
+                // Reset button
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        function displayResults(word, url, doc, rawHtml) {
+            // Check if DOM elements exist
+            const wordInfoElement = document.getElementById('wordInfo');
+            const definitionElement = document.getElementById('definition');
+            
+            if (!wordInfoElement || !definitionElement) {
+                console.error('Required DOM elements not found');
+                showStatus('Error displaying results', 'error');
+                return;
+            }
+            
+            // Show word info
+            wordInfoElement.innerHTML = `
+                <h2>📖 ${word}</h2>
+                <div class="url-info">
+                    <strong>Source:</strong> <a href="${url}" target="_blank">Cambridge Dictionary - ${word}</a>
+                </div>
+            `;
+            
+            // Try to extract definition
+            const definition = extractDefinition(doc, word);
+            definitionElement.innerHTML = definition;
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function extractDefinition(doc, word) {
+            let definitionHtml = '<h3>📚 Definition of "' + word + '":</h3>';
+            
+            // Look for definition elements specific to Cambridge Dictionary
+            const definitionSelectors = [
+                '.def.ddef_d.db',
+                '.ddef_h',
+                '.def-block.ddef_block',
+                '.def.ddef_d',
+                '[data-wl-senseid] .def'
+            ];
+            
+            for (const selector of definitionSelectors) {
+                const definitions = doc.querySelectorAll(selector);
+                
+                if (definitions.length > 0) {
+                    definitions.forEach((defElement, index) => {
+                        const text = defElement.textContent.trim();
+                        
+                        if (text.length > 5 && 
+                            !text.includes('javascript') &&
+                            !text.includes('window') &&
+                            !text.match(/^[A-Z\s]+$/) && // not uppercase-only text
+                            text.match(/[a-z]/) && // must contain lowercase letters
+                            text.length < 500) { // reasonable length
+                            
+                            definitionHtml += `
+                                <div style="margin: 20px 0; padding: 25px; background: #e8f5e8; border-left: 4px solid #28a745; border-radius: 5px;">
+                                    <div style="font-size: 18px; font-weight: bold; color: #155724; line-height: 1.4;">
+                                        ${text}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    if (definitionHtml !== '<h3>📚 Definition of "' + word + '":</h3>') {
+                        return definitionHtml;
+                    }
+                }
+            }
+            
+            // Fallback: look for any element containing definition-like text
+            const allElements = doc.querySelectorAll('div, span, p');
+            
+            for (const element of allElements) {
+                const text = element.textContent.trim();
+                
+                if (text.length > 20 && 
+                    text.length < 200 &&
+                    !text.includes('[') &&
+                    !text.includes('©') &&
+                    !text.includes('javascript') &&
+                    text.match(/^[a-z].*[a-z]$/i) && // starts and ends with letters
+                    (text.includes('the ') || text.includes('a ') || text.includes('an ')) &&
+                    !text.includes('Cambridge') &&
+                    !text.includes('dictionary')) {
+                    
+                    definitionHtml += `
+                        <div style="margin: 20px 0; padding: 25px; background: #e8f5e8; border-left: 4px solid #28a745; border-radius: 5px;">
+                            <div style="font-size: 18px; font-weight: bold; color: #155724; line-height: 1.4;">
+                                ${text}
+                            </div>
+                        </div>
+                    `;
+                    return definitionHtml;
+                }
+            }
+            
+            // No definition found
+            definitionHtml += `
+                <div style="margin: 15px 0; padding: 15px; background: #f8d7da; border-left: 4px solid #dc3545;">
+                    <strong>⚠️ No definition found</strong><br>
+                    The word "${word}" was not found in Cambridge Dictionary or the definition is in an unexpected format.
+                    Try another word or check the spelling.
+                </div>
+            `;
+            
+            return definitionHtml;
+        }
+
+        function showAlternativeSearch(word) {
+            const alternativeHtml = `
+                <div style="margin: 20px 0; padding: 20px; background: #e3f2fd; border-radius: 5px;">
+                    <h3>🔗 Alternative search options for "${word}":</h3>
+                    <ul style="margin: 15px 0;">
+                        <li><a href="https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(word)}" target="_blank">Direct to Cambridge Dictionary</a></li>
+                        <li><a href="https://www.merriam-webster.com/dictionary/${encodeURIComponent(word)}" target="_blank">Merriam-Webster Dictionary</a></li>
+                        <li><a href="https://www.oxfordlearnersdictionaries.com/definition/english/${encodeURIComponent(word)}" target="_blank">Oxford Learner's Dictionary</a></li>
+                        <li><a href="https://en.wiktionary.org/wiki/${encodeURIComponent(word)}" target="_blank">Wiktionary</a></li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = alternativeHtml;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = type;
+            statusDiv.textContent = message;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                    statusDiv.className = '';
+                }, 3000);
+            }
+        }
+
+        // Focus on input field when loading
+        window.addEventListener('load', function() {
+            document.getElementById('searchWord').focus();
+        });
+    </script>
+</body>
+</html>
